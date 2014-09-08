@@ -5,9 +5,10 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.util.Log;
 
+import jp.yokomark.utils.audio.compat.FocusControlCompat;
+import jp.yokomark.utils.audio.focus.token.FocusConfigToken;
 import jp.yokomark.utils.audio.volume.token.adjust.AdjustVolumeConfigToken;
 import jp.yokomark.utils.audio.volume.token.fixed.FixedVolumeConfigToken;
-import jp.yokomark.utils.audio.focus.token.FocusConfigToken;
 
 /**
  * @author KeithYokoma
@@ -17,9 +18,11 @@ public final class AudioConfigEditor {
 	public static final String TAG = AudioConfigEditor.class.getSimpleName();
 	private static AudioConfigEditor sInstance;
 	private final AudioManager mAudioManager;
+	private FocusControlCompat mFocusControlCompat;
 
 	protected AudioConfigEditor(Application application) {
 		mAudioManager = (AudioManager) application.getSystemService(Context.AUDIO_SERVICE);
+		mFocusControlCompat = new FocusControlCompat();
 	}
 
 	public static synchronized void initialize(Application application) {
@@ -58,12 +61,11 @@ public final class AudioConfigEditor {
 	}
 
 	public int focusOn(AudioManager.OnAudioFocusChangeListener l, FocusConfigToken token) {
-		return mAudioManager.requestAudioFocus(l,
-				token.getAudioStream().getValue(),
-				token.getDurationHint().getValue());
+		return mFocusControlCompat.onFocusGain(mAudioManager, l,
+				token.getAudioStream().getValue(), token.getDurationHint().getValue());
 	}
 
 	public int unfocus(AudioManager.OnAudioFocusChangeListener l) {
-		return mAudioManager.abandonAudioFocus(l);
+		return mFocusControlCompat.onAbandonFocus(mAudioManager, l);
 	}
 }
